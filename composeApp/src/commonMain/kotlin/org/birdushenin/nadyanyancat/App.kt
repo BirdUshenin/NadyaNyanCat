@@ -4,13 +4,17 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -22,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.birdushenin.nadyanyancat.data.Pipe
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -43,6 +48,7 @@ fun App() {
     MaterialTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             FlappyBirdGame(birdY = birdY, pipes = pipes, score = score.value, isGameOver = isGameOver)
+            RestartButton(isGameOver = isGameOver, birdY = birdY, pipes = pipes, score = score)
         }
     }
 }
@@ -70,24 +76,26 @@ fun FlappyBirdGame(
 
     val holeHeight = remember { mutableStateOf(400f) }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            birdSpeed.value += gravity
-            birdY.value += birdSpeed.value
+    LaunchedEffect(isGameOver.value) {
+        if (!isGameOver.value) {
+            while (true) {
+                birdSpeed.value += gravity
+                birdY.value += birdSpeed.value
 
-            pipes.forEach {
-                it.xPosition -= pipeSpeed.value
-            }
-
-            pipes.forEachIndexed { index, pipe ->
-                if (pipe.xPosition < 0) {
-                    pipes[index] = pipe.copy(xPosition = screenWidth)
+                pipes.forEach {
+                    it.xPosition -= pipeSpeed.value
                 }
+
+                pipes.forEachIndexed { index, pipe ->
+                    if (pipe.xPosition < 0) {
+                        pipes[index] = pipe.copy(xPosition = screenWidth)
+                    }
+                }
+
+                checkCollision(birdY.value, pipes, holeHeight = holeHeight.value, isGameOver)
+
+                delay(16L)
             }
-
-            checkCollision(birdY.value, pipes, holeHeight = holeHeight.value, isGameOver)
-
-            delay(16L)
         }
     }
 
@@ -134,6 +142,35 @@ fun FlappyBirdGame(
                     shadow = Shadow(color = Color.Gray, offset = Offset(5f, 5f), blurRadius = 2f)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun RestartButton(
+    isGameOver: MutableState<Boolean>,
+    birdY: MutableState<Float>,
+    pipes: MutableList<Pipe>,
+    score: MutableState<String>
+) {
+    if (isGameOver.value) {
+        Button(
+            onClick = {
+                isGameOver.value = false
+                birdY.value = 300f
+                pipes.clear()
+                pipes.addAll(
+                    listOf(
+                        Pipe(1000f, 500f),
+                        Pipe(1500f, 600f)
+                    )
+                )
+                score.value = "0"
+            },
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Text(text = "Restart")
         }
     }
 }

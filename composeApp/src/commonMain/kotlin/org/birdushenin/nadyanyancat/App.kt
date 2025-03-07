@@ -4,13 +4,17 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -22,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.birdushenin.nadyanyancat.data.Pipe
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -30,6 +35,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     val birdY = remember { mutableStateOf(300f) }
+    val isGameOver = remember { mutableStateOf(false) }
 
     val pipes = remember {
         mutableStateListOf(
@@ -41,13 +47,19 @@ fun App() {
 
     MaterialTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score.value)
+            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score.value, isGameOver = isGameOver)
+            RestartButton(isGameOver = isGameOver, birdY = birdY, pipes = pipes, score = score)
         }
     }
 }
 
 @Composable
-fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: String) {
+fun FlappyBirdGame(
+    birdY: MutableState<Float>,
+    pipes: MutableList<Pipe>,
+    score: String,
+    isGameOver: MutableState<Boolean>
+) {
     val textMeasurer = rememberTextMeasurer()
     val text = "Score: $score"
     val textLayoutResult = textMeasurer.measure(text)
@@ -62,29 +74,37 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
     val gravity = 0.5f
     val jumpStrength = -15f
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            birdSpeed.value += gravity
-            birdY.value += birdSpeed.value
+    val holeHeight = remember { mutableStateOf(400f) }
 
-            pipes.forEach {
-                it.xPosition -= pipeSpeed.value
-            }
+    LaunchedEffect(isGameOver.value) {
+        if (!isGameOver.value) {
+            while (true) {
+                birdSpeed.value += gravity
+                birdY.value += birdSpeed.value
 
-            pipes.forEachIndexed { index, pipe ->
-                if (pipe.xPosition < 0) {
-                    pipes[index] = pipe.copy(xPosition = screenWidth)
+                pipes.forEach {
+                    it.xPosition -= pipeSpeed.value
                 }
-            }
 
-            delay(16L)
+                pipes.forEachIndexed { index, pipe ->
+                    if (pipe.xPosition < 0) {
+                        pipes[index] = pipe.copy(xPosition = screenWidth)
+                    }
+                }
+
+                checkCollision(birdY.value, pipes, holeHeight = holeHeight.value, isGameOver)
+
+                delay(16L)
+            }
         }
     }
 
     Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
         detectTapGestures(
             onTap = {
-                birdSpeed.value = jumpStrength
+                if (!isGameOver.value) {
+                    birdSpeed.value = jumpStrength
+                }
             }
         )
     }) {
@@ -99,8 +119,8 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
                 )
                 drawRect(
                     color = Color.Green,
-                    topLeft = Offset(pipe.xPosition, pipe.height + 150f),
-                    size = Size(50f, size.height - pipe.height - 150f)
+                    topLeft = Offset(pipe.xPosition, pipe.height + holeHeight.value), // Дырка между трубами
+                    size = Size(50f, size.height - pipe.height - holeHeight.value)
                 )
             }
 
@@ -112,6 +132,55 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
                 shadow = Shadow(color = Color.Gray, offset = Offset(5f, 5f), blurRadius = 2f),
                 textDecoration = TextDecoration.Underline
             )
+
+            if (isGameOver.value) {
+                drawText(
+                    textLayoutResult = textMeasurer.measure("Game Over"),
+                    brush = SolidColor(Color.Red),
+                    topLeft = Offset(200f, 300f),
+                    alpha = 1f,
+                    shadow = Shadow(color = Color.Gray, offset = Offset(5f, 5f), blurRadius = 2f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RestartButton(
+    isGameOver: MutableState<Boolean>,
+    birdY: MutableState<Float>,
+    pipes: MutableList<Pipe>,
+    score: MutableState<String>
+) {
+    if (isGameOver.value) {
+        Button(
+            onClick = {
+                isGameOver.value = false
+                birdY.value = 300f
+                pipes.clear()
+                pipes.addAll(
+                    listOf(
+                        Pipe(1000f, 500f),
+                        Pipe(1500f, 600f)
+                    )
+                )
+                score.value = "0"
+            },
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
+            Text(text = "Restart")
+        }
+    }
+}
+
+fun checkCollision(birdY: Float, pipes: List<Pipe>, holeHeight: Float, isGameOver: MutableState<Boolean>) {
+    pipes.forEach { pipe ->
+        if (pipe.xPosition in 50f..100f) {
+            if (birdY - 30f < pipe.height || birdY + 30f > (pipe.height + holeHeight)) {
+                isGameOver.value = true
+            }
         }
     }
 }

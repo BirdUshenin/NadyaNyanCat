@@ -14,7 +14,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -43,11 +42,11 @@ fun App() {
             Pipe(1500f, 600f)
         )
     }
-    val score = remember { mutableStateOf("0") }
+    val score = remember { mutableStateOf(0) }
 
     MaterialTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score.value, isGameOver = isGameOver)
+            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score, isGameOver = isGameOver)
             RestartButton(isGameOver = isGameOver, birdY = birdY, pipes = pipes, score = score)
         }
     }
@@ -57,11 +56,11 @@ fun App() {
 fun FlappyBirdGame(
     birdY: MutableState<Float>,
     pipes: MutableList<Pipe>,
-    score: String,
+    score: MutableState<Int>,
     isGameOver: MutableState<Boolean>
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val text = "Score: $score"
+    val text = "Score: ${score.value}"
     val textLayoutResult = textMeasurer.measure(text)
 
     val density = LocalDensity.current
@@ -89,6 +88,12 @@ fun FlappyBirdGame(
                 pipes.forEachIndexed { index, pipe ->
                     if (pipe.xPosition < 0) {
                         pipes[index] = pipe.copy(xPosition = screenWidth)
+                    }
+                }
+
+                pipes.forEach { pipe ->
+                    if (pipe.xPosition in 50f..100f) {
+                        score.value += 1
                     }
                 }
 
@@ -151,7 +156,7 @@ fun RestartButton(
     isGameOver: MutableState<Boolean>,
     birdY: MutableState<Float>,
     pipes: MutableList<Pipe>,
-    score: MutableState<String>
+    score: MutableState<Int>
 ) {
     if (isGameOver.value) {
         Button(
@@ -165,7 +170,7 @@ fun RestartButton(
                         Pipe(1500f, 600f)
                     )
                 )
-                score.value = "0"
+                score.value = 0
             },
             modifier = Modifier
                 .padding(16.dp)

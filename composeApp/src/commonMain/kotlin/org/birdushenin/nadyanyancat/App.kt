@@ -30,6 +30,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     val birdY = remember { mutableStateOf(300f) }
+    val isGameOver = remember { mutableStateOf(false) }
 
     val pipes = remember {
         mutableStateListOf(
@@ -41,13 +42,18 @@ fun App() {
 
     MaterialTheme {
         Box(modifier = Modifier.fillMaxSize()) {
-            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score.value)
+            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score.value, isGameOver = isGameOver)
         }
     }
 }
 
 @Composable
-fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: String) {
+fun FlappyBirdGame(
+    birdY: MutableState<Float>,
+    pipes: MutableList<Pipe>,
+    score: String,
+    isGameOver: MutableState<Boolean>
+) {
     val textMeasurer = rememberTextMeasurer()
     val text = "Score: $score"
     val textLayoutResult = textMeasurer.measure(text)
@@ -61,6 +67,8 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
     // Гравитация
     val gravity = 0.5f
     val jumpStrength = -15f
+
+    val holeHeight = remember { mutableStateOf(400f) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -77,6 +85,8 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
                 }
             }
 
+            checkCollision(birdY.value, pipes, holeHeight = holeHeight.value, isGameOver)
+
             delay(16L)
         }
     }
@@ -84,7 +94,9 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
     Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
         detectTapGestures(
             onTap = {
-                birdSpeed.value = jumpStrength
+                if (!isGameOver.value) {
+                    birdSpeed.value = jumpStrength
+                }
             }
         )
     }) {
@@ -99,8 +111,8 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
                 )
                 drawRect(
                     color = Color.Green,
-                    topLeft = Offset(pipe.xPosition, pipe.height + 150f),
-                    size = Size(50f, size.height - pipe.height - 150f)
+                    topLeft = Offset(pipe.xPosition, pipe.height + holeHeight.value), // Дырка между трубами
+                    size = Size(50f, size.height - pipe.height - holeHeight.value)
                 )
             }
 
@@ -112,6 +124,26 @@ fun FlappyBirdGame(birdY: MutableState<Float>, pipes: MutableList<Pipe>, score: 
                 shadow = Shadow(color = Color.Gray, offset = Offset(5f, 5f), blurRadius = 2f),
                 textDecoration = TextDecoration.Underline
             )
+
+            if (isGameOver.value) {
+                drawText(
+                    textLayoutResult = textMeasurer.measure("Game Over"),
+                    brush = SolidColor(Color.Red),
+                    topLeft = Offset(200f, 300f),
+                    alpha = 1f,
+                    shadow = Shadow(color = Color.Gray, offset = Offset(5f, 5f), blurRadius = 2f)
+                )
+            }
+        }
+    }
+}
+
+fun checkCollision(birdY: Float, pipes: List<Pipe>, holeHeight: Float, isGameOver: MutableState<Boolean>) {
+    pipes.forEach { pipe ->
+        if (pipe.xPosition in 50f..100f) {
+            if (birdY - 30f < pipe.height || birdY + 30f > (pipe.height + holeHeight)) {
+                isGameOver.value = true
+            }
         }
     }
 }

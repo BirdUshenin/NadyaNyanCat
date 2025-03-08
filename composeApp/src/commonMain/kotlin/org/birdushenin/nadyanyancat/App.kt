@@ -1,6 +1,7 @@
 package org.birdushenin.nadyanyancat
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,21 +15,28 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import nadyanyancat.composeapp.generated.resources.Res
+import nadyanyancat.composeapp.generated.resources.background
+import nadyanyancat.composeapp.generated.resources.down
+import nadyanyancat.composeapp.generated.resources.up
 import org.birdushenin.nadyanyancat.data.Pipe
+import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -43,11 +51,11 @@ fun App() {
             Pipe(1500f, 600f)
         )
     }
-    val score = remember { mutableStateOf("0") }
-
+    val score = remember { mutableStateOf(0) }
     MaterialTheme {
+        BackgroundImage()
         Box(modifier = Modifier.fillMaxSize()) {
-            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score.value, isGameOver = isGameOver)
+            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score, isGameOver = isGameOver)
             RestartButton(isGameOver = isGameOver, birdY = birdY, pipes = pipes, score = score)
         }
     }
@@ -57,11 +65,11 @@ fun App() {
 fun FlappyBirdGame(
     birdY: MutableState<Float>,
     pipes: MutableList<Pipe>,
-    score: String,
+    score: MutableState<Int>,
     isGameOver: MutableState<Boolean>
 ) {
     val textMeasurer = rememberTextMeasurer()
-    val text = "Score: $score"
+    val text = "Score: ${score.value}"
     val textLayoutResult = textMeasurer.measure(text)
 
     val density = LocalDensity.current
@@ -76,6 +84,9 @@ fun FlappyBirdGame(
 
     val holeHeight = remember { mutableStateOf(400f) }
 
+    val upPipePainter = imageResource(Res.drawable.up)
+    val downPipeImage = imageResource(Res.drawable.down)
+
     LaunchedEffect(isGameOver.value) {
         if (!isGameOver.value) {
             while (true) {
@@ -89,6 +100,12 @@ fun FlappyBirdGame(
                 pipes.forEachIndexed { index, pipe ->
                     if (pipe.xPosition < 0) {
                         pipes[index] = pipe.copy(xPosition = screenWidth)
+                    }
+                }
+
+                pipes.forEach { pipe ->
+                    if (pipe.xPosition in 50f..100f) {
+                        score.value += 1
                     }
                 }
 
@@ -110,17 +127,20 @@ fun FlappyBirdGame(
     }) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawCircle(Color.Red, radius = 30f, center = Offset(100f, birdY.value))
-
             pipes.forEach { pipe ->
-                drawRect(
-                    color = Color.Green,
-                    topLeft = Offset(pipe.xPosition, 0f),
-                    size = Size(50f, pipe.height)
+                drawImage(
+                    image = upPipePainter,
+                    srcSize = IntSize(upPipePainter.width, upPipePainter.height),
+                    dstSize = IntSize(50, pipe.height.toInt()),
+                    dstOffset = IntOffset(pipe.xPosition.toInt(), 0),
+                    alpha = 1f
                 )
-                drawRect(
-                    color = Color.Green,
-                    topLeft = Offset(pipe.xPosition, pipe.height + holeHeight.value), // Дырка между трубами
-                    size = Size(50f, size.height - pipe.height - holeHeight.value)
+                drawImage(
+                    image = downPipeImage,
+                    srcSize = IntSize(downPipeImage.width, downPipeImage.height),
+                    dstSize = IntSize(50, (size.height - pipe.height - holeHeight.value).toInt()),
+                    dstOffset = IntOffset(pipe.xPosition.toInt(), (pipe.height + holeHeight.value).toInt()),
+                    alpha = 1f
                 )
             }
 
@@ -151,7 +171,7 @@ fun RestartButton(
     isGameOver: MutableState<Boolean>,
     birdY: MutableState<Float>,
     pipes: MutableList<Pipe>,
-    score: MutableState<String>
+    score: MutableState<Int>
 ) {
     if (isGameOver.value) {
         Button(
@@ -165,7 +185,7 @@ fun RestartButton(
                         Pipe(1500f, 600f)
                     )
                 )
-                score.value = "0"
+                score.value = 0
             },
             modifier = Modifier
                 .padding(16.dp)
@@ -183,4 +203,18 @@ fun checkCollision(birdY: Float, pipes: List<Pipe>, holeHeight: Float, isGameOve
             }
         }
     }
+}
+
+@Composable
+fun BackgroundImage() {
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer(
+                scaleX = 3f,
+                scaleY = 3f
+            ),
+        painter = painterResource(Res.drawable.background),
+        contentDescription = "My Image"
+    )
 }

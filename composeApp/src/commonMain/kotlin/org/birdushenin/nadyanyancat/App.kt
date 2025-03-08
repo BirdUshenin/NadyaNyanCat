@@ -129,14 +129,14 @@ fun FlappyBirdGame(
             drawCircle(Color.Red, radius = 30f, center = Offset(100f, birdY.value))
             pipes.forEach { pipe ->
                 drawImage(
-                    image = upPipePainter,
+                    image = downPipeImage,
                     srcSize = IntSize(upPipePainter.width, upPipePainter.height),
                     dstSize = IntSize(50, pipe.height.toInt()),
                     dstOffset = IntOffset(pipe.xPosition.toInt(), 0),
                     alpha = 1f
                 )
                 drawImage(
-                    image = downPipeImage,
+                    image = upPipePainter,
                     srcSize = IntSize(downPipeImage.width, downPipeImage.height),
                     dstSize = IntSize(50, (size.height - pipe.height - holeHeight.value).toInt()),
                     dstOffset = IntOffset(pipe.xPosition.toInt(), (pipe.height + holeHeight.value).toInt()),

@@ -1,10 +1,14 @@
 package org.birdushenin.nadyanyancat
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -20,6 +24,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.drawText
@@ -27,7 +32,12 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import nadyanyancat.composeapp.generated.resources.Res
+import nadyanyancat.composeapp.generated.resources.background
+import nadyanyancat.composeapp.generated.resources.down
+import nadyanyancat.composeapp.generated.resources.up
 import org.birdushenin.nadyanyancat.data.Pipe
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -43,8 +53,8 @@ fun App() {
         )
     }
     val score = remember { mutableStateOf(0) }
-
     MaterialTheme {
+        BackgroundImage()
         Box(modifier = Modifier.fillMaxSize()) {
             FlappyBirdGame(birdY = birdY, pipes = pipes, score = score, isGameOver = isGameOver)
             RestartButton(isGameOver = isGameOver, birdY = birdY, pipes = pipes, score = score)
@@ -188,4 +198,34 @@ fun checkCollision(birdY: Float, pipes: List<Pipe>, holeHeight: Float, isGameOve
             }
         }
     }
+}
+
+@Composable
+fun BackgroundImage() {
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer(
+                scaleX = 3f,
+                scaleY = 3f
+            ),
+        painter = painterResource(Res.drawable.background),
+        contentDescription = "My Image"
+    )
+}
+
+@Composable
+fun UpPipes() {
+    Image(
+        painter = painterResource(Res.drawable.up),
+        contentDescription = "My Image"
+    )
+}
+
+@Composable
+fun DownPipes() {
+    Image(
+        painter = painterResource(Res.drawable.down),
+        contentDescription = "My Image"
+    )
 }

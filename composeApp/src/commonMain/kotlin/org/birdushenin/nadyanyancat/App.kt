@@ -2,13 +2,10 @@ package org.birdushenin.nadyanyancat
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -20,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.SolidColor
@@ -30,6 +26,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import nadyanyancat.composeapp.generated.resources.Res
@@ -37,6 +35,7 @@ import nadyanyancat.composeapp.generated.resources.background
 import nadyanyancat.composeapp.generated.resources.down
 import nadyanyancat.composeapp.generated.resources.up
 import org.birdushenin.nadyanyancat.data.Pipe
+import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -85,6 +84,9 @@ fun FlappyBirdGame(
 
     val holeHeight = remember { mutableStateOf(400f) }
 
+    val upPipePainter = imageResource(Res.drawable.up)
+    val downPipeImage = imageResource(Res.drawable.down)
+
     LaunchedEffect(isGameOver.value) {
         if (!isGameOver.value) {
             while (true) {
@@ -125,17 +127,20 @@ fun FlappyBirdGame(
     }) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawCircle(Color.Red, radius = 30f, center = Offset(100f, birdY.value))
-
             pipes.forEach { pipe ->
-                drawRect(
-                    color = Color.Green,
-                    topLeft = Offset(pipe.xPosition, 0f),
-                    size = Size(50f, pipe.height)
+                drawImage(
+                    image = upPipePainter,
+                    srcSize = IntSize(upPipePainter.width, upPipePainter.height),
+                    dstSize = IntSize(50, pipe.height.toInt()),
+                    dstOffset = IntOffset(pipe.xPosition.toInt(), 0),
+                    alpha = 1f
                 )
-                drawRect(
-                    color = Color.Green,
-                    topLeft = Offset(pipe.xPosition, pipe.height + holeHeight.value), // Дырка между трубами
-                    size = Size(50f, size.height - pipe.height - holeHeight.value)
+                drawImage(
+                    image = downPipeImage,
+                    srcSize = IntSize(downPipeImage.width, downPipeImage.height),
+                    dstSize = IntSize(50, (size.height - pipe.height - holeHeight.value).toInt()),
+                    dstOffset = IntOffset(pipe.xPosition.toInt(), (pipe.height + holeHeight.value).toInt()),
+                    alpha = 1f
                 )
             }
 
@@ -210,22 +215,6 @@ fun BackgroundImage() {
                 scaleY = 3f
             ),
         painter = painterResource(Res.drawable.background),
-        contentDescription = "My Image"
-    )
-}
-
-@Composable
-fun UpPipes() {
-    Image(
-        painter = painterResource(Res.drawable.up),
-        contentDescription = "My Image"
-    )
-}
-
-@Composable
-fun DownPipes() {
-    Image(
-        painter = painterResource(Res.drawable.down),
         contentDescription = "My Image"
     )
 }

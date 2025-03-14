@@ -1,0 +1,14 @@
+# Uncomment the next line to define a global platform for your project
+# platform :ios, '9.0'
+
+use_frameworks!
+platform :ios, '16.0'
+#source 'https://github.com/CocoaPods/Specs.git'
+
+target 'iosApp' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  pod 'composeApp', :path => '../composeApp'
+  # Pods for iosApp
+  pod 'SDWebImage'
+
+end

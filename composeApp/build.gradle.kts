@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinCocoapods)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
@@ -24,12 +25,26 @@ kotlin {
             isStatic = true
         }
     }
-    
+
+    cocoapods {
+        summary = "App module"
+        version = "1.0"
+        homepage = "https://github.com/JetBrains/kotlin"
+        ios.deploymentTarget = "16.0"
+        framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+        pod("SDWebImage")
+        podfile = project.file("../iosApp/Podfile")
+    }
+
     sourceSets {
-        
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.gif)
         }
         commonMain.dependencies {
             implementation(compose.runtime)

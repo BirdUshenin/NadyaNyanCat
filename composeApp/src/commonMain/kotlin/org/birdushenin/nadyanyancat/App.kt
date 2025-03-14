@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import nadyanyancat.composeapp.generated.resources.Res
-import nadyanyancat.composeapp.generated.resources.background
+import nadyanyancat.composeapp.generated.resources.bc2
 import nadyanyancat.composeapp.generated.resources.down
 import nadyanyancat.composeapp.generated.resources.up
 import org.birdushenin.nadyanyancat.data.Pipe
@@ -53,7 +53,8 @@ fun App() {
     }
     val score = remember { mutableStateOf(0) }
     MaterialTheme {
-        BackgroundImage()
+//        BackgroundImage()
+        gifImage()
         Box(modifier = Modifier.fillMaxSize()) {
             FlappyBirdGame(birdY = birdY, pipes = pipes, score = score, isGameOver = isGameOver)
             RestartButton(isGameOver = isGameOver, birdY = birdY, pipes = pipes, score = score)
@@ -211,10 +212,15 @@ fun BackgroundImage() {
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer(
-                scaleX = 3f,
-                scaleY = 3f
+                scaleX = 2f,
+                scaleY = 2f
             ),
-        painter = painterResource(Res.drawable.background),
+        painter = painterResource(Res.drawable.bc2),
         contentDescription = "My Image"
     )
+}
+
+@Composable
+private fun gifImage(){
+    GifLoader()
 }

@@ -1,0 +1,26 @@
+PODS:
+  - composeApp (1.0):
+    - SDWebImage
+  - SDWebImage (5.21.0):
+    - SDWebImage/Core (= 5.21.0)
+  - SDWebImage/Core (5.21.0)
+
+DEPENDENCIES:
+  - composeApp (from `../composeApp`)
+  - SDWebImage
+
+SPEC REPOS:
+  trunk:
+    - SDWebImage
+
+EXTERNAL SOURCES:
+  composeApp:
+    :path: "../composeApp"
+
+SPEC CHECKSUMS:
+  composeApp: cf2a555ccaf24b81eff58816a70ec166c81fcb5f
+  SDWebImage: f84b0feeb08d2d11e6a9b843cb06d75ebf5b8868
+
+PODFILE CHECKSUM: 9306e2ecd14c4ff46319d3b1d7df4d61c80f8df6
+
+COCOAPODS: 1.15.2

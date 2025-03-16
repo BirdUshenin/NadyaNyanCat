@@ -12,17 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -100,7 +97,9 @@ fun SplashScreen(onTimeout: () -> Unit) {
 @Composable
 fun MainMenuScreen(onStartClick: () -> Unit) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .background(Color(0xFFEAE89C))
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -138,6 +137,7 @@ fun GameScreen(onExit: () -> Unit) {
                 Button(onClick = onExit) {
                     Text("В меню")
                 }
+                RestartButton(isGameOver, birdY, pipes, score)
             }
         }
     }
@@ -169,6 +169,8 @@ fun FlappyBirdGame(
     val upPipePainter = imageResource(Res.drawable.up)
     val downPipeImage = imageResource(Res.drawable.down)
 
+    val birdImage = imageResource(Res.drawable.bc2)
+
     LaunchedEffect(isGameOver.value) {
         if (!isGameOver.value) {
             while (true) {
@@ -180,7 +182,7 @@ fun FlappyBirdGame(
                 }
 
                 pipes.forEachIndexed { index, pipe ->
-                    if (pipe.xPosition < 0) {
+                    if (pipe.xPosition < -50) {
                         pipes[index] = pipe.copy(xPosition = screenWidth)
                     }
                 }
@@ -208,7 +210,15 @@ fun FlappyBirdGame(
         )
     }) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(Color.Red, radius = 30f, center = Offset(100f, birdY.value))
+
+            drawImage(
+                image = birdImage,
+                srcSize = IntSize(birdImage.width, birdImage.height),
+                dstSize = IntSize(60, 60),
+                dstOffset = IntOffset(70, birdY.value.toInt()),
+                alpha = 1f
+            )
+
             pipes.forEach { pipe ->
                 drawImage(
                     image = downPipeImage,

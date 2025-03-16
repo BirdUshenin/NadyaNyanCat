@@ -41,6 +41,7 @@ import kotlinx.coroutines.delay
 import nadyanyancat.composeapp.generated.resources.Res
 import nadyanyancat.composeapp.generated.resources.bc2
 import nadyanyancat.composeapp.generated.resources.down
+import nadyanyancat.composeapp.generated.resources.nadya
 import nadyanyancat.composeapp.generated.resources.up
 import org.birdushenin.nadyanyancat.data.Pipe
 import org.jetbrains.compose.resources.imageResource
@@ -169,7 +170,7 @@ fun FlappyBirdGame(
     val upPipePainter = imageResource(Res.drawable.up)
     val downPipeImage = imageResource(Res.drawable.down)
 
-    val birdImage = imageResource(Res.drawable.bc2)
+    val birdImage = imageResource(Res.drawable.nadya)
 
     LaunchedEffect(isGameOver.value) {
         if (!isGameOver.value) {
@@ -214,7 +215,7 @@ fun FlappyBirdGame(
             drawImage(
                 image = birdImage,
                 srcSize = IntSize(birdImage.width, birdImage.height),
-                dstSize = IntSize(60, 60),
+                dstSize = IntSize(60, 80),
                 dstOffset = IntOffset(70, birdY.value.toInt()),
                 alpha = 1f
             )
@@ -290,7 +291,7 @@ fun RestartButton(
 fun checkCollision(birdY: Float, pipes: List<Pipe>, holeHeight: Float, isGameOver: MutableState<Boolean>) {
     pipes.forEach { pipe ->
         if (pipe.xPosition in 50f..100f) {
-            if (birdY - 30f < pipe.height || birdY + 30f > (pipe.height + holeHeight)) {
+            if (birdY - 5f < pipe.height || birdY + 30f > (pipe.height + holeHeight)) {
                 isGameOver.value = true
             }
         }

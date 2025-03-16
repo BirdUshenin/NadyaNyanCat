@@ -1,6 +1,9 @@
 package org.birdushenin.nadyanyancat
 
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,7 +53,9 @@ actual fun GifLoader(url: String) {
     }
 
     UIKitView(
-        modifier = Modifier.size(100.dp),
+        modifier = Modifier
+            .height(220.dp)
+            .width(300.dp),
         factory = { gifView },
         update = { it.startAnimating() }
     )
@@ -96,7 +101,8 @@ fun UIImage.Companion.gifImageWithData(
                 images.add(image)
             }
 
-            val delaySeconds = delayForImageAtIndex(i, source)
+            var delaySeconds = delayForImageAtIndex(i, source)
+            delaySeconds = maxOf(0.05, delaySeconds / 2)
             delays.add(delaySeconds * 1000.0)
         }
 

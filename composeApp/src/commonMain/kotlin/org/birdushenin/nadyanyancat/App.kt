@@ -2,19 +2,28 @@ package org.birdushenin.nadyanyancat
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -24,11 +33,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import nadyanyancat.composeapp.generated.resources.Res
 import nadyanyancat.composeapp.generated.resources.bc2
@@ -42,22 +53,92 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 @Preview
 fun App() {
-    val birdY = remember { mutableStateOf(300f) }
-    val isGameOver = remember { mutableStateOf(false) }
+    val gameState = remember { mutableStateOf(GameState.SPLASH) }
 
-    val pipes = remember {
-        mutableStateListOf(
-            Pipe(1000f, 500f),
-            Pipe(1500f, 600f)
+    MaterialTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (gameState.value) {
+                GameState.SPLASH -> SplashScreen { gameState.value = GameState.MENU }
+                GameState.MENU -> MainMenuScreen { gameState.value = GameState.GAME }
+                GameState.GAME -> GameScreen { gameState.value = GameState.MENU }
+            }
+        }
+    }
+}
+
+enum class GameState {
+    SPLASH, MENU, GAME
+}
+
+@Composable
+fun SplashScreen(onTimeout: () -> Unit) {
+
+    LaunchedEffect(Unit) {
+        delay(3000)
+        onTimeout()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFDFFFD)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        GifLoader(
+            url = "https://i.pinimg.com/originals/98/81/5f/98815f30af15d94ab3dd1af44ef8e6a9.gif"
+        )
+        Text(
+            text = "Meow Production",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
         )
     }
+}
+
+@Composable
+fun MainMenuScreen(onStartClick: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "Flappy Bird",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = onStartClick) {
+                Text(text = "Старт")
+            }
+        }
+    }
+}
+
+@Composable
+fun GameScreen(onExit: () -> Unit) {
+    val birdY = remember { mutableStateOf(300f) }
+    val isGameOver = remember { mutableStateOf(false) }
+    val pipes = remember { mutableStateListOf(Pipe(1000f, 500f), Pipe(1500f, 600f)) }
     val score = remember { mutableStateOf(0) }
-    MaterialTheme {
-//        BackgroundImage()
-        gifImage()
-        Box(modifier = Modifier.fillMaxSize()) {
-            FlappyBirdGame(birdY = birdY, pipes = pipes, score = score, isGameOver = isGameOver)
-            RestartButton(isGameOver = isGameOver, birdY = birdY, pipes = pipes, score = score)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        FlappyBirdGame(birdY, pipes, score, isGameOver)
+
+        if (isGameOver.value) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Game Over", fontSize = 24.sp, color = Color.Red)
+                Button(onClick = onExit) {
+                    Text("В меню")
+                }
+            }
         }
     }
 }
@@ -218,9 +299,4 @@ fun BackgroundImage() {
         painter = painterResource(Res.drawable.bc2),
         contentDescription = "My Image"
     )
-}
-
-@Composable
-private fun gifImage(){
-    GifLoader("https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif")
 }

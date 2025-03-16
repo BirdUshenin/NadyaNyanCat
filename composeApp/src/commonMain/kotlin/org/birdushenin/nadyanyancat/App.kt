@@ -17,9 +17,11 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -52,13 +54,17 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     val gameState = remember { mutableStateOf(GameState.SPLASH) }
+    val highScore = remember { mutableStateOf(0) }
 
     MaterialTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             when (gameState.value) {
                 GameState.SPLASH -> SplashScreen { gameState.value = GameState.MENU }
                 GameState.MENU -> MainMenuScreen { gameState.value = GameState.GAME }
-                GameState.GAME -> GameScreen { gameState.value = GameState.MENU }
+                GameState.GAME -> GameScreen(
+                    onExit = { gameState.value = GameState.MENU },
+                    highScore = highScore
+                )
             }
         }
     }
@@ -119,22 +125,32 @@ fun MainMenuScreen(onStartClick: () -> Unit) {
 }
 
 @Composable
-fun GameScreen(onExit: () -> Unit) {
+fun GameScreen(
+    onExit: () -> Unit,
+    highScore: MutableState<Int>
+) {
     val birdY = remember { mutableStateOf(300f) }
     val isGameOver = remember { mutableStateOf(false) }
     val pipes = remember { mutableStateListOf(Pipe(1000f, 500f), Pipe(1500f, 600f)) }
     val score = remember { mutableStateOf(0) }
 
+    val holeHeight = remember { mutableStateOf(400f) }
+    val pipeSpeed = remember { mutableStateOf(5f) }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        FlappyBirdGame(birdY, pipes, score, isGameOver)
+        FlappyBirdGame(birdY, pipes, score, isGameOver, holeHeight, pipeSpeed)
 
         if (isGameOver.value) {
+            if (score.value > highScore.value) {
+                highScore.value = score.value
+            }
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Game Over", fontSize = 24.sp, color = Color.Red)
+                Text("Игра окончена \uD83D\uDE3F", fontSize = 24.sp, color = Color.Red)
+                Text("Рекорд: ${highScore.value}", fontSize = 20.sp, color = Color.Black)
                 Button(onClick = onExit) {
                     Text("В меню")
                 }
@@ -149,7 +165,9 @@ fun FlappyBirdGame(
     birdY: MutableState<Float>,
     pipes: MutableList<Pipe>,
     score: MutableState<Int>,
-    isGameOver: MutableState<Boolean>
+    isGameOver: MutableState<Boolean>,
+    holeHeight: MutableState<Float>,
+    pipeSpeed: MutableState<Float>
 ) {
     val textMeasurer = rememberTextMeasurer()
     val text = "Score: ${score.value}"
@@ -159,22 +177,53 @@ fun FlappyBirdGame(
     val screenWidth = with(density) { getScreenWidth().toPx() }
 
     val birdSpeed = remember { mutableStateOf(0f) }
-    val pipeSpeed = remember { mutableStateOf(5f) }
 
     // Гравитация
-    val gravity = 0.5f
-    val jumpStrength = -15f
-
-    val holeHeight = remember { mutableStateOf(400f) }
+    var gravity = 0.5f
+    var jumpStrength = -15f
 
     val upPipePainter = imageResource(Res.drawable.up)
     val downPipeImage = imageResource(Res.drawable.down)
 
     val birdImage = imageResource(Res.drawable.nadya)
 
+    var time by remember { mutableStateOf(0) }
+    Timer(
+        timeCount = { newTime -> time = newTime },
+        resetTimer = isGameOver.value
+    )
+
+    when (time) {
+        in 0..30 -> {  // 0-30 секунд
+            holeHeight.value = 400f
+            pipeSpeed.value = 5f
+            gravity = 0.5f
+            jumpStrength = -15f
+        }
+        in 30..60 -> {  // 30-60 секунд
+            holeHeight.value = 370f
+            pipeSpeed.value = 5f
+            gravity = 0.5f
+            jumpStrength = -15f
+        }
+        in 60..120 -> {  // 60-120 секунд
+            holeHeight.value = 350f
+            pipeSpeed.value = 10f
+            gravity = 1f
+            jumpStrength = -20f
+        }
+        else -> {  // после 120 секунд
+            holeHeight.value = 350f
+            pipeSpeed.value = 15f
+            gravity = 2f
+            jumpStrength = -30f
+        }
+    }
+
     LaunchedEffect(isGameOver.value) {
         if (!isGameOver.value) {
             while (true) {
+
                 birdSpeed.value += gravity
                 birdY.value += birdSpeed.value
 
@@ -184,7 +233,8 @@ fun FlappyBirdGame(
 
                 pipes.forEachIndexed { index, pipe ->
                     if (pipe.xPosition < -50) {
-                        pipes[index] = pipe.copy(xPosition = screenWidth)
+                        val newHeight = (0..1000).random().toFloat()  // Случайная высота
+                        pipes[index] = Pipe(xPosition = screenWidth, height = newHeight)
                     }
                 }
 
@@ -257,6 +307,31 @@ fun FlappyBirdGame(
             }
         }
     }
+}
+
+@Composable
+fun Timer(
+    timeCount: (Int) -> Unit,
+    resetTimer: Boolean
+) {
+    var time by remember { mutableStateOf(0) }
+
+    LaunchedEffect(resetTimer) {
+        if (resetTimer) {
+            time = 0
+        } else {
+            while (true) {
+                delay(1000L)
+                time++
+                timeCount(time)
+            }
+        }
+    }
+}
+
+@Composable
+fun highLevel(){
+
 }
 
 @Composable

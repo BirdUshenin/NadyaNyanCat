@@ -10,14 +10,21 @@ import coil.request.ImageRequest
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
-actual fun GifLoader() {
+actual fun GifLoader(url: String) {
+//    AsyncImage(
+//        model = ImageRequest.Builder(LocalContext.current)
+//            .data(R.drawable.nyancat)
+//            .decoderFactory { result, options, _ ->
+//                ImageDecoderDecoder(result.source, options)
+//            }
+//            .build(),
+//        contentDescription = "GIF from resources"
+//    )
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
-            .data(R.drawable.nyancat)
-            .decoderFactory { result, options, _ ->
-                ImageDecoderDecoder(result.source, options)
-            }
+            .data(url)
+            .crossfade(true)
             .build(),
-        contentDescription = "GIF from resources"
+        contentDescription = "GIF from URL"
     )
 }
